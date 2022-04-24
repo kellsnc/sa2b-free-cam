@@ -37,6 +37,8 @@ DataPointer(BYTE, byte_174AFEB, 0x174AFEB);
 DataPointer(DWORD, dword_19EF36C, 0x19EF36C);
 DataPointer(DWORD, dword_1DCFF04, 0x1DCFF04);
 
+FunctionPointer(BOOL, MSetPosition, (NJS_POINT3* p, NJS_POINT3* v, Angle3* a, float r), 0x446D40);
+
 VoidFunc(sub_4ECDF0, 0x4ECDF0);
 VoidFunc(sub_4EE490, 0x4EE490);
 VoidFunc(sub_4EC840, 0x4EC840);
@@ -70,7 +72,7 @@ using SomeFuncPtr = void(__cdecl*)(CameraInfo*, char*);
 
 BOOL MSetPositionWIgnoreAttribute(NJS_POINT3* p, NJS_POINT3* v, Angle3* a, int attrmask, float r)
 {
-    return FALSE;
+    return MSetPosition(p, v, a, r);
 }
 
 void FreeCam_GetDistances(FCWRK* cam, EntityData1* pltwp)
@@ -82,12 +84,9 @@ void FreeCam_GetDistances(FCWRK* cam, EntityData1* pltwp)
 void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
 {
     NJS_VECTOR unitvector = { 0.0f, 0.0f, cam->dist };
-    Angle y = cam->_ang.y;
-    Angle x = cam->_ang.x;
-
     njPushMatrix(_nj_unit_matrix_);
-    if (y) njRotateY(_nj_current_matrix_ptr_, y);
-    if (x) njRotateX(_nj_current_matrix_ptr_, x);
+    njRotateY_(_nj_current_matrix_ptr_, cam->_ang.y);
+    njRotateX_(_nj_current_matrix_ptr_, cam->_ang.x);
     njCalcPoint(_nj_current_matrix_ptr_, &unitvector, &unitvector, FALSE);
     njPopMatrixEx();
 
@@ -373,16 +372,25 @@ void FreeCamera(int screen)
 
     cam->dist0 = cam->dist;
 
+    // Apply position
     CameraData[screen].pos = cam->campos;
     CameraData[screen].ang = cam->_ang;
 
+    // Make sure the peek info arrays are updated
+    auto peek_array = CameraScreensInfoArray[screen];
+    if (peek_array)
+    {
+        peek_array->pos = cam->campos;
+        peek_array->ang = cam->_ang;
+    }
+
+    // Calc direction vector
     NJS_VECTOR dir = { 0.0f, 0.0f, -1.0f };
     njPushUnitMatrix();
     njRotateY_(_nj_current_matrix_ptr_, cam->_ang.y);
     njRotateX_(_nj_current_matrix_ptr_, cam->_ang.x);
-    njCalcVector(&dir, &dir, _nj_current_matrix_ptr_);
+    njCalcVector(&dir, &CameraData[screen].dir, _nj_current_matrix_ptr_);
     njPopMatrixEx();
-    CameraData[screen].dir = dir;
 }
 
 void AutoCamera(int screen)
