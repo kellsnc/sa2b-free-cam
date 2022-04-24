@@ -5,6 +5,5 @@
 #include <math.h>
 #include "SA2ModLoader.h"
 #include "Trampoline.h"
-#include "UsercallFunctionHandler.h"
 
 #endif //PCH_H

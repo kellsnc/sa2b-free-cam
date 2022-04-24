@@ -2,12 +2,19 @@
 #include <math.h>
 #include "SA2ModLoader.h"
 #include "Trampoline.h"
-#include "UsercallFunctionHandler.h"
+
+enum : unsigned int
+{
+    MODE_4 = 0x4,
+    MODE_8 = 0x8,
+    MODE_40000000 = 0x40000000,
+    MODE_80000000 = 0x80000000
+};
 
 struct FCWRK
 {
-    int mode;
-
+    bool enabled;
+    unsigned int mode;
 	float dist1;
 	float dist2;
 	float dist0;
@@ -39,10 +46,27 @@ VoidFunc(sub_4EB6E0, 0x4EB6E0);
 VoidFunc(sub_4EC9A0, 0x4EC9A0);
 VoidFunc(sub_4EC520, 0x4EC520);
 
-static auto sub_4EC770 = GenerateUsercallWrapper<void (*)(int)>(noret, 0x4EC770, rECX);
-static auto sub_4F0680 = GenerateUsercallWrapper<void (*)(int)>(noret, 0x4F0680, rEDI);
+static const void* const loc_4EC770 = (void*)0x4EC770;
+static inline void sub_4EC770(int num)
+{
+    __asm
+    {
+        mov ecx, [num]
+        call loc_4EC770
+    }
+}
 
-using CamAdjustPtr = void(__cdecl*)(CameraInfo*, char*);
+static const void* const loc_4F0680 = (void*)0x4F0680;
+static inline void sub_4F0680(int num)
+{
+    __asm
+    {
+        mov edi, [num]
+        call loc_4F0680
+    }
+}
+
+using SomeFuncPtr = void(__cdecl*)(CameraInfo*, char*);
 
 BOOL MSetPositionWIgnoreAttribute(NJS_POINT3* p, NJS_POINT3* v, Angle3* a, int attrmask, float r)
 {
@@ -62,17 +86,8 @@ void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
     Angle x = cam->_ang.x;
 
     njPushMatrix(_nj_unit_matrix_);
-
-    if (y)
-    {
-        njRotateY(0, y);
-    }
-
-    if (x)
-    {
-        njRotateX(0, x);
-    }
-
+    if (y) njRotateY(_nj_current_matrix_ptr_, y);
+    if (x) njRotateX(_nj_current_matrix_ptr_, x);
     njCalcPoint(_nj_current_matrix_ptr_, &unitvector, &unitvector, FALSE);
     njPopMatrixEx();
 
@@ -98,27 +113,25 @@ void FreeCamera(int screen)
     NJS_VECTOR dyncolpos;
     NJS_VECTOR freecampos;
 
-    cam->mode |= 0x80000000;
-
     if (cam->timer)
     {
         --cam->timer;
     }
     else
     {
-        cam->mode &= ~8u;
+        cam->mode &= ~MODE_8;
     }
 
-    if ((cam->mode & 0x80000000))
+    if ((cam->mode & MODE_80000000))
     {
         FreeCam_GetDistances(cam, pltwp);
         vec.x = cam->pos.x - pltwp->Position.x;
-        vec.y = cam->pos.y - pltwp->Position.y - 10.5;
+        vec.y = cam->pos.y - pltwp->Position.y - 10.5f;
         vec.z = cam->pos.z - pltwp->Position.z;
         float magnitude = fabsf(njScalor(&vec));
         njUnitVector(&vec);
-        cam->_ang.y = (atan2(vec.x, vec.z) * 65536.0 * 0.1591549762031479);
-        cam->_ang.x = (asin(vec.y) * 65536.0 * -0.1591549762031479);
+        cam->_ang.y = NJM_RAD_ANG(atan2(vec.x, vec.z));
+        cam->_ang.x = NJM_RAD_ANG(-asin(vec.y));
         cam->_ang.z = 0;
 
         if (magnitude < cam->dist1 || magnitude > cam->dist2)
@@ -138,12 +151,12 @@ void FreeCamera(int screen)
         cam->pang.x = 0;
         cam->pang.y = 0;
         cam->pang.z = 0;
-        cam->mode |= 0x40000000u;
+        cam->mode |= MODE_40000000;
     }
 
-    if ((cam->mode & 0x40000000) != 0)
+    if (cam->mode & MODE_40000000)
     {
-        if ((cam->mode & 0x80000000) == 0)
+        if (!(cam->mode & MODE_80000000))
         {
             FreeCam_GetDistances(cam, pltwp);
             cam->counter = 0;
@@ -186,7 +199,7 @@ void FreeCamera(int screen)
 
         }
 
-        cam->mode &= ~0xC0000000;
+        cam->mode &= ~(MODE_80000000 | MODE_40000000);
     }
 
     if (cam->pang.y > 0)
@@ -338,7 +351,7 @@ void FreeCamera(int screen)
     }
     else if (++cam->counter > 20)
     {
-        cam->mode |= 0x40000000u;
+        cam->mode |= MODE_40000000;
     }
 
     if (water_cdt)
@@ -385,19 +398,13 @@ void AutoCamera(int screen)
     sub_4EC520();
     if (CameraTimer)
     {
-        auto v4 = &CameraData[screen].gap1B8[0x114
-            * *(DWORD*)&CameraData[screen].gap1B8[156]
-            + 0x11E0];
-        CamAdjustPtr func = (void(__cdecl*)(CameraInfo*, char*)) * ((DWORD*)v4 + 3);
+        auto v4 = &CameraData[screen].gap1B8[0x114 * *(DWORD*)&CameraData[screen].gap1B8[156] + 0x11E0];
+        SomeFuncPtr func = (SomeFuncPtr) * ((DWORD*)v4 + 3);
 
         if (func)
         {
-            func(
-                &CameraData[screen],
-                &CameraData[screen].gap1B8[0x114
-                * *(DWORD*)&CameraData[screen].gap1B8[156]
-                + 0x11E0]);
-            ++* ((DWORD*)v4 + 2);
+            func(&CameraData[screen], v4);
+            ++*((DWORD*)v4 + 2);
         }
 
         sub_4EC520();
@@ -424,7 +431,7 @@ void __cdecl cameraCons_Main_r(ObjectMaster* tp)
         sub_4ECDF0();
         for (CurrentScreen = 0; CurrentScreen < SplitscreenMode; ++CurrentScreen)
         {
-            if (true)
+            if (fcwrk[CurrentScreen].enabled)
             {
                 FreeCamera(CurrentScreen);
             }
@@ -445,12 +452,37 @@ void __cdecl cameraCons_Main_r(ObjectMaster* tp)
     }
 }
 
+void SetFreeCameraMode(int sw, int num)
+{
+    if (sw)
+    {
+        if (!(fcwrk[num].mode & MODE_4))
+            fcwrk[num].mode |= MODE_80000000 | MODE_4;
+    }
+    else
+    {
+        fcwrk[num].mode = fcwrk[num].mode & ~MODE_4 | MODE_80000000;
+    }
+}
+
 extern "C"
 {
 	__declspec(dllexport) void __cdecl Init(const char* path, const HelperFunctions& helperFunctions)
 	{
         WriteJump(cameraCons_Main, cameraCons_Main_r);
 	}
+
+    __declspec(dllexport) void __cdecl OnControl()
+    {
+        for (int i = 0; i < max_player; ++i)
+        {
+            if ((Controllers[i].press & (Buttons_L | Buttons_R)) == (Buttons_L | Buttons_R))
+            {
+                fcwrk[i].enabled = !fcwrk[i].enabled;
+                SetFreeCameraMode(fcwrk[i].enabled, i);
+            }
+        }
+    }
 
 	__declspec(dllexport) ModInfo SA2ModInfo = { ModLoaderVer };
 }
