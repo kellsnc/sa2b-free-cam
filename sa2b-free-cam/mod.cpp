@@ -33,6 +33,11 @@ struct FCWRK
 static constexpr int max_player = 4;
 static FCWRK fcwrk[max_player];
 
+static const float min_dist   = 16.0f;
+static const float max_dist   = 50.0f;
+static const float height     = 10.5f;
+static const Angle analog_spd = 0x40;
+
 DataPointer(BYTE, byte_174AFEB, 0x174AFEB);
 DataPointer(DWORD, dword_19EF36C, 0x19EF36C);
 DataPointer(DWORD, dword_1DCFF04, 0x1DCFF04);
@@ -77,8 +82,8 @@ BOOL MSetPositionWIgnoreAttribute(NJS_POINT3* p, NJS_POINT3* v, Angle3* a, int a
 
 void FreeCam_GetDistances(FCWRK* cam, EntityData1* pltwp)
 {
-    cam->dist1 = 16.0f;
-    cam->dist2 = 50.0f;
+    cam->dist1 = min_dist;
+    cam->dist2 = max_dist;
 }
 
 void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
@@ -91,7 +96,7 @@ void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
     njPopMatrixEx();
 
     cam->pos.x = unitvector.x + pltwp->Position.x;
-    cam->pos.y = unitvector.y + pltwp->Position.y + 10.5f;
+    cam->pos.y = unitvector.y + pltwp->Position.y + height;
     cam->pos.z = unitvector.z + pltwp->Position.z;
 }
 
@@ -125,7 +130,7 @@ void FreeCamera(int screen)
     {
         FreeCam_GetDistances(cam, pltwp);
         vec.x = cam->pos.x - pltwp->Position.x;
-        vec.y = cam->pos.y - pltwp->Position.y - 10.5f;
+        vec.y = cam->pos.y - pltwp->Position.y - height;
         vec.z = cam->pos.z - pltwp->Position.z;
         float magnitude = fabsf(njScalor(&vec));
         njUnitVector(&vec);
@@ -222,11 +227,11 @@ void FreeCamera(int screen)
 
     if ((plper->x2 > 0 || (plper->r - 128) << 8 > 128) && cam->pang.y < 256)
     {
-        cam->pang.y += 64;
+        cam->pang.y += analog_spd;
     }
     else if ((plper->x2 < 0 || (plper->l - 128) << 8 > 128) && cam->pang.y > -256)
     {
-        cam->pang.y -= 64;
+        cam->pang.y -= analog_spd;
     }
 
     cam->_ang.y += cam->pang.y;
@@ -252,11 +257,11 @@ void FreeCamera(int screen)
 
     if (plper->y2 > 0 && cam->pang.x < 256)
     {
-        cam->pang.x += 64;
+        cam->pang.x += analog_spd;
     }
     else if (plper->y2 < 0 && cam->pang.x > -256)
     {
-        cam->pang.x -= 64;
+        cam->pang.x -= analog_spd;
     }
 
     cam->_ang.x += cam->pang.x;
@@ -283,17 +288,17 @@ void FreeCamera(int screen)
 
     freecampos = cam->campos;
     dyncolpos = cam->camspd;
-    int water_cdt = 0;
+    int colli_cdt = 0;
 
     if (MSetPositionWIgnoreAttribute(&freecampos, &dyncolpos, nullptr, SurfaceFlag_Water | SurfaceFlag_WaterNoAlpha, 10.0f))
     {
         freecampos = cam->campos;
         dyncolpos = cam->camspd;
-        water_cdt = 1;
+        colli_cdt = 1;
 
         if (MSetPositionWIgnoreAttribute(&freecampos, &dyncolpos, nullptr, SurfaceFlag_Water | SurfaceFlag_WaterNoAlpha, 8.0f))
         {
-            water_cdt = 2;
+            colli_cdt = 2;
         }
     }
 
@@ -333,14 +338,14 @@ void FreeCamera(int screen)
     }
 
     vec.x = cam->campos.x - pltwp->Position.x - vec.x;
-    vec.y = cam->campos.y - pltwp->Position.y - vec.y - 10.5f;
+    vec.y = cam->campos.y - pltwp->Position.y - vec.y - height;
     vec.z = cam->campos.z - pltwp->Position.z - vec.z;
     njUnitVector(&vec);
 
     cam->_ang.y = NJM_RAD_ANG(atan2f(vec.x, vec.z));
     cam->_ang.x = NJM_RAD_ANG(-asinf(vec.y));
     vec.x = cam->campos.x - pltwp->Position.x;
-    vec.y = cam->campos.y - pltwp->Position.y - 10.5f;
+    vec.y = cam->campos.y - pltwp->Position.y - height;
     vec.z = cam->campos.z - pltwp->Position.z;
     cam->dist = fabsf(njScalor(&vec));
 
@@ -353,7 +358,7 @@ void FreeCamera(int screen)
         cam->mode |= MODE_40000000;
     }
 
-    if (water_cdt)
+    if (colli_cdt)
     {
         if (cam->dist <= cam->dist1)
         {
