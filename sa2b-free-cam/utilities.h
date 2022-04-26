@@ -2,10 +2,6 @@
 
 static constexpr int max_player = 4;
 
-DataPointer(BYTE, byte_174AFEB, 0x174AFEB);
-DataPointer(DWORD, dword_19EF36C, 0x19EF36C);
-DataPointer(DWORD, dword_1DCFF04, 0x1DCFF04);
-
 VoidFunc(sub_4ECDF0, 0x4ECDF0);
 VoidFunc(CameraCameraMode, 0x4EE490);
 VoidFunc(CameraUpdateLocation_, 0x4EC840);

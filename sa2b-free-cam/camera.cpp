@@ -6,12 +6,12 @@
 
 enum : unsigned int
 {
-    MODE_1 = 0x1,
-    MODE_2 = 0x2,
-    MODE_4 = 0x4,
-    MODE_8 = 0x8,
-    MODE_40000000 = 0x40000000,
-    MODE_80000000 = 0x80000000
+    MODE_ENABLED = 0x1,        // If free camera is enabled
+    MODE_ACTIVE = 0x2,         // If free camera logic has run
+    MODE_AUTHORIZED = 0x4,     // If free camera can be enabled
+    MODE_TIMER = 0x8,          // If free camera is temporarily disabled
+    MODE_UPDATE2 = 0x40000000, // Reposition the camera
+    MODE_UPDATE = 0x80000000   // Reposition the camera
 };
 
 struct FCWRK
@@ -59,6 +59,11 @@ static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
     cam->pos.z = unitvector.z + pltwp->Position.z;
 }
 
+static bool FreeCam_Exception(int screen)
+{
+    return MainCharObj1[screen]->Status & Status_OnPath;
+}
+
 static bool freecameramode(int screen)
 {
     auto cam = &fcwrk[screen];
@@ -82,15 +87,15 @@ static bool freecameramode(int screen)
     }
     else
     {
-        cam->mode &= ~MODE_8;
+        cam->mode &= ~MODE_TIMER;
     }
 
-    if (cam->mode & 8 || pltwp->Status & Status_OnPath)
+    if (cam->mode & MODE_TIMER || !(cam->mode & MODE_AUTHORIZED) || FreeCam_Exception(screen))
     {
         return false;
     }
 
-    if ((cam->mode & MODE_80000000))
+    if ((cam->mode & MODE_UPDATE))
     {
         FreeCam_GetDistances(cam, pltwp);
         vec.x = cam->pos.x - pltwp->Position.x;
@@ -119,12 +124,12 @@ static bool freecameramode(int screen)
         cam->pang.x = 0;
         cam->pang.y = 0;
         cam->pang.z = 0;
-        cam->mode |= MODE_40000000;
+        cam->mode |= MODE_UPDATE2;
     }
 
-    if (cam->mode & MODE_40000000)
+    if (cam->mode & MODE_UPDATE2)
     {
-        if (!(cam->mode & MODE_80000000))
+        if (!(cam->mode & MODE_UPDATE))
         {
             FreeCam_GetDistances(cam, pltwp);
             cam->counter = 0;
@@ -167,7 +172,7 @@ static bool freecameramode(int screen)
 
         }
 
-        cam->mode &= ~(MODE_80000000 | MODE_40000000);
+        cam->mode &= ~(MODE_UPDATE | MODE_UPDATE2);
     }
 
     if (cam->pang.y > 0)
@@ -319,7 +324,7 @@ static bool freecameramode(int screen)
     }
     else if (++cam->counter > 20)
     {
-        cam->mode |= MODE_40000000;
+        cam->mode |= MODE_UPDATE2;
     }
 
     if (colli_cdt)
@@ -385,19 +390,19 @@ void __cdecl Camera_r(ObjectMaster* tp)
                 CameraManager();
             }
 
-            fcp->mode &= ~MODE_2;
+            fcp->mode &= ~MODE_ACTIVE;
 
-            if (fcwrk[CurrentScreen].mode & MODE_1)
+            if (fcwrk[CurrentScreen].mode & MODE_ENABLED)
             {
                 if (freecameramode(CurrentScreen))
                 {
-                    fcp->mode |= MODE_2;
+                    fcp->mode |= MODE_ACTIVE;
                 }
             }
 
-            if (!(fcp->mode & MODE_2))
+            if (!(fcp->mode & MODE_ACTIVE))
             {
-                fcwrk[CurrentScreen].mode |= MODE_80000000;
+                fcwrk[CurrentScreen].mode |= MODE_UPDATE;
                 CameraCameraMode();
                 RunCameraTarget();
 
@@ -445,7 +450,7 @@ void InitFreeCamera()
     for (auto& i : fcwrk)
     {
         i.timer = 60;
-        i.mode |= MODE_80000000 | MODE_8 | MODE_4;
+        i.mode |= MODE_UPDATE | MODE_TIMER | MODE_AUTHORIZED;
     }
 }
 
@@ -454,25 +459,25 @@ void ResetFreeCamera()
     for (auto& i : fcwrk)
     {
         i.timer = 60;
-        i.mode |= MODE_80000000 | MODE_8;
+        i.mode |= MODE_UPDATE | MODE_TIMER;
     }
 }
 
 bool GetFreeCamera(int num)
 {
-    return (fcwrk[num].mode & MODE_1);
+    return (fcwrk[num].mode & MODE_ENABLED);
 }
 
 void SetFreeCamera(int sw, int num)
 {
     if (sw)
     {
-        if (!(fcwrk[num].mode & MODE_1))
-            fcwrk[num].mode |= MODE_80000000 | MODE_1;
+        if (!(fcwrk[num].mode & MODE_ENABLED))
+            fcwrk[num].mode |= MODE_UPDATE | MODE_ENABLED;
     }
     else
     {
-        fcwrk[num].mode = fcwrk[num].mode & ~MODE_1 | MODE_80000000;
+        fcwrk[num].mode = fcwrk[num].mode & ~MODE_ENABLED | MODE_UPDATE;
     }
 }
 
@@ -480,11 +485,11 @@ void SetFreeCameraMode(int sw, int num)
 {
     if (sw)
     {
-        if (!(fcwrk[num].mode & MODE_4))
-            fcwrk[num].mode |= MODE_80000000 | MODE_4;
+        if (!(fcwrk[num].mode & MODE_AUTHORIZED))
+            fcwrk[num].mode |= MODE_UPDATE | MODE_AUTHORIZED;
     }
     else
     {
-        fcwrk[num].mode = fcwrk[num].mode & ~MODE_4 | MODE_80000000;
+        fcwrk[num].mode = fcwrk[num].mode & ~MODE_AUTHORIZED | MODE_UPDATE;
     }
 }
