@@ -9,30 +9,30 @@ Trampoline* InitPauseMenu_t = nullptr;
 Trampoline* FreePauseMenu_t = nullptr;
 
 static const char* const CameraModeTexts[] {
-    "CAMERA MODE", // jp
-    "CAMERA MODE", // en
+    "\a\203\112\203\201\203\211\203\202\201\133\203\150", // jp
+    "CAMERA MODE",       // en
     "MODE DE LA CAMÉRA", // fr
     "MODO DE LA CÁMARA", // es
-    "CAMERA MODE", // ge
-    "CAMERA MODE"  // it
+    "KAMERAMODUS",       // ge
+    "MODO DELLA CAMERA"  // it
 };
 
 static const char* const AutoCameraTexts[] {
-    "AUTO CAMERA", // jp
-    "AUTO CAMERA", // en
-    "CAMÉRA AUTO", // fr
+    "\a\203\111\201\133\203\147\203\112\203\201\203\211", // jp
+    "AUTO CAMERA",       // en
+    "CAMÉRA AUTO",       // fr
     "CÁMARA AUTOMÁTICA", // es
-    "AUTO CAMERA", // ge
-    "AUTO CAMERA"  // it
+    "AUTO KAMERA",       // ge
+    "CAMERA AUTOMATICA"  // it
 };
 
 static const char* const FreeCameraTexts[] {
-    "FREE CAMERA", // jp
-    "FREE CAMERA", // en
+    "\a\203\164\203\212\201\133\203\112\203\201\203\211", // jp
+    "FREE CAMERA",  // en
     "CAMÉRA LIBRE", // fr
     "CÁMARA LIBRE", // es
-    "FREE CAMERA", // ge
-    "FREE CAMERA"  // it
+    "FREIE KAMERA", // ge
+    "CAMERA LIBERA" // it
 };
 
 static const char* const* const CameraMenuTexts[] {
