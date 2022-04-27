@@ -3,12 +3,13 @@
 #include "Trampoline.h"
 #include "utilities.h"
 #include "camera.h"
+#include "menu.h"
 
 Trampoline* SetCameraTask_t = nullptr;
 
-static void SetCameraTask_r()
+static void __cdecl SetCameraTask_r()
 {
-    ((decltype(SetCameraTask_r)*)SetCameraTask_t->Target())();
+    TARGET_DYNAMIC(SetCameraTask)();
     InitFreeCamera();
 }
 
@@ -18,6 +19,7 @@ extern "C"
 	{
         WriteJump(cameraCons_Main, Camera_r);
         SetCameraTask_t = new Trampoline(0x4EBA50, 0x4EBA55, SetCameraTask_r);
+        InitMenu();
 	}
 
     __declspec(dllexport) void __cdecl OnControl()
