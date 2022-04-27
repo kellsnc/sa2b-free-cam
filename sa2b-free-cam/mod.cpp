@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "SA2ModLoader.h"
 #include "Trampoline.h"
+#include "config.h"
 #include "utilities.h"
 #include "camera.h"
 #include "menu.h"
@@ -17,9 +18,15 @@ extern "C"
 {
 	__declspec(dllexport) void __cdecl Init(const char* path, const HelperFunctions& helperFunctions)
 	{
+        config::read(path);
+
         WriteJump(cameraCons_Main, Camera_r);
         SetCameraTask_t = new Trampoline(0x4EBA50, 0x4EBA55, SetCameraTask_r);
-        InitMenu();
+
+        if (config::menu_enabled)
+        {
+            InitMenu();
+        }
 	}
 
     __declspec(dllexport) void __cdecl OnControl()

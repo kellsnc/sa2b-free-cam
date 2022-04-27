@@ -1,6 +1,7 @@
 #include "pch.h"
 #include <math.h>
 #include "SA2ModLoader.h"
+#include "config.h"
 #include "utilities.h"
 #include "camera.h"
 
@@ -34,15 +35,10 @@ struct FCWRK
 
 static FCWRK fcwrk[max_player];
 
-static const float min_dist = 16.0f;
-static const float max_dist = 50.0f;
-static const float height = 10.5f;
-static const Angle analog_spd = 0x40;
-
 static void FreeCam_GetDistances(FCWRK* cam, EntityData1* pltwp)
 {
-    cam->dist1 = min_dist;
-    cam->dist2 = max_dist;
+    cam->dist1 = config::min_dist;
+    cam->dist2 = config::max_dist;
 }
 
 static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
@@ -55,7 +51,7 @@ static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
     njPopMatrixEx();
 
     cam->pos.x = unitvector.x + pltwp->Position.x;
-    cam->pos.y = unitvector.y + pltwp->Position.y + height;
+    cam->pos.y = unitvector.y + pltwp->Position.y + config::height;
     cam->pos.z = unitvector.z + pltwp->Position.z;
 }
 
@@ -99,7 +95,7 @@ static bool freecameramode(int screen)
     {
         FreeCam_GetDistances(cam, pltwp);
         vec.x = cam->pos.x - pltwp->Position.x;
-        vec.y = cam->pos.y - pltwp->Position.y - height;
+        vec.y = cam->pos.y - pltwp->Position.y - config::height;
         vec.z = cam->pos.z - pltwp->Position.z;
         float magnitude = fabsf(njScalor(&vec));
         njUnitVector(&vec);
@@ -194,13 +190,13 @@ static bool freecameramode(int screen)
         }
     }
 
-    if ((plper->x2 > 0 || (plper->r - 128) << 8 > 128) && cam->pang.y < 256)
+    if ((plper->x2 > 0 || (plper->r - 128) << 8 > 128) && cam->pang.y < config::analog_max)
     {
-        cam->pang.y += analog_spd;
+        cam->pang.y += config::analog_spd;
     }
-    else if ((plper->x2 < 0 || (plper->l - 128) << 8 > 128) && cam->pang.y > -256)
+    else if ((plper->x2 < 0 || (plper->l - 128) << 8 > 128) && cam->pang.y > -config::analog_max)
     {
-        cam->pang.y -= analog_spd;
+        cam->pang.y -= config::analog_spd;
     }
 
     cam->_ang.y += cam->pang.y;
@@ -224,13 +220,13 @@ static bool freecameramode(int screen)
         }
     }
 
-    if (plper->y2 > 0 && cam->pang.x < 256)
+    if (plper->y2 > 0 && cam->pang.x < config::analog_max)
     {
-        cam->pang.x += analog_spd;
+        cam->pang.x += config::analog_spd;
     }
-    else if (plper->y2 < 0 && cam->pang.x > -256)
+    else if (plper->y2 < 0 && cam->pang.x > -config::analog_max)
     {
-        cam->pang.x -= analog_spd;
+        cam->pang.x -= config::analog_spd;
     }
 
     cam->_ang.x += cam->pang.x;
@@ -307,14 +303,14 @@ static bool freecameramode(int screen)
     }
 
     vec.x = cam->campos.x - pltwp->Position.x - vec.x;
-    vec.y = cam->campos.y - pltwp->Position.y - vec.y - height;
+    vec.y = cam->campos.y - pltwp->Position.y - vec.y - config::height;
     vec.z = cam->campos.z - pltwp->Position.z - vec.z;
     njUnitVector(&vec);
 
     cam->_ang.y = NJM_RAD_ANG(atan2f(vec.x, vec.z));
     cam->_ang.x = NJM_RAD_ANG(-asinf(vec.y));
     vec.x = cam->campos.x - pltwp->Position.x;
-    vec.y = cam->campos.y - pltwp->Position.y - height;
+    vec.y = cam->campos.y - pltwp->Position.y - config::height;
     vec.z = cam->campos.z - pltwp->Position.z;
     cam->dist = fabsf(njScalor(&vec));
 
