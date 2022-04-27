@@ -57,7 +57,7 @@ static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
 
 static bool FreeCam_Exception(int screen)
 {
-    return MainCharObj1[screen]->Status & Status_OnPath;
+    return MainCharObj1[screen]->Status & Status_OnPath || LevelFinished;
 }
 
 static bool freecameramode(int screen)

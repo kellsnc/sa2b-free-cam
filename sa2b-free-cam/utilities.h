@@ -7,6 +7,7 @@ static constexpr int max_player = 4;
 DataPointer(BOOL, DisableFog, 0x1A55808);
 DataPointer(int, ScreenDrawMode, 0x25EFFCC);
 DataPointer(int, PauseMode, 0x17472BC);
+DataPointer(char, LevelFinished, 0x174B002);
 
 DataArray(const char*, PauseMenuMainTextsJP, 0x174A7D0, 10);
 DataArray(const char*, PauseMenuMainTextsUS, 0x174A828, 10);
