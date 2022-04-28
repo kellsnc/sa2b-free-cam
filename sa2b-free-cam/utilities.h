@@ -27,16 +27,6 @@ VoidFunc(CameraManager, 0x4F0730);
 FunctionPointer(void*, CreateFontTexture, (const char* text, int language, __int16 a3, __int16 a4), 0x6B7F40);
 FunctionPointer(void, ApplyFog, (int id, float a2, float a3, int a4), 0x420510);
 
-enum Languages
-{
-    Language_Japanese,
-    Language_English,
-    Language_French,
-    Language_Spanish,
-    Language_German,
-    Language_Italian
-};
-
 static const void* const loc_4F0680 = (void*)0x4F0680;
 static inline void CameraManagerRegional(int num)
 {
@@ -89,6 +79,21 @@ static inline void DrawPauseMassage(int a1, void* image)
         mov esi, [image]
         call loc_43F800
     }
+}
+
+static const void* const loc_46C730 = (void*)0x46C730;
+static inline int CheckCollisionP(NJS_POINT3* p, float r)
+{
+    int result;
+    __asm
+    {
+        push[r]
+        mov eax, [p]
+        call loc_46C730
+        mov result, eax
+        add esp, 4
+    }
+    return result;
 }
 
 static const void* const loc_41DC80 = (void*)0x41DC80;

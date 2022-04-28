@@ -57,7 +57,19 @@ static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
 
 static bool FreeCam_Exception(int screen)
 {
-    return MainCharObj1[screen]->Status & Status_OnPath || LevelFinished;
+    if (MainCharObj1[screen]->Status & Status_OnPath || LevelFinished)
+    {
+        return true;
+    }
+
+    auto cam_mode = GetCameraMode(screen, GetCurrentCameraSlot(screen));
+
+    if (cam_mode == CameraMode_User || cam_mode == CameraMode_Leave)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 static bool freecameramode(int screen)
@@ -368,7 +380,7 @@ static void AdjustForFreeCamera(CameraInfo* cam, FCWRK* fcp)
 
 void __cdecl Camera_r(ObjectMaster* tp)
 {
-    if (!CameraEnabled)
+    if (!CameraDisabled)
     {
         sub_4ECDF0();
 
