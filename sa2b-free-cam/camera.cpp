@@ -44,7 +44,7 @@ static void FreeCam_GetDistances(FCWRK* cam, EntityData1* pltwp)
 static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
 {
     NJS_VECTOR unitvector = { 0.0f, 0.0f, cam->dist };
-    njPushMatrix(_nj_unit_matrix_);
+    njPushUnitMatrix();
     njRotateY_(_nj_current_matrix_ptr_, cam->_ang.y);
     njRotateX_(_nj_current_matrix_ptr_, cam->_ang.x);
     njCalcPoint(_nj_current_matrix_ptr_, &unitvector, &unitvector, FALSE);
