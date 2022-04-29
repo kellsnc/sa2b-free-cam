@@ -57,14 +57,21 @@ static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
 
 static bool FreeCam_Exception(int screen)
 {
-    if (MainCharObj1[screen]->Status & Status_OnPath || LevelFinished)
+    if (LevelFinished)
+    {
+        return true;
+    }
+
+    auto ptwp = MainCharObj1[screen];
+
+    if (ptwp->Status & Status_OnPath && ptwp->Action != Action_Grind)
     {
         return true;
     }
 
     auto cam_mode = GetCameraMode(screen, GetCurrentCameraSlot(screen));
 
-    if (cam_mode == CameraMode_User || cam_mode == CameraMode_Leave)
+    if (cam_mode == CameraMode_User || cam_mode == CameraMode_Leave || cam_mode == CameraMode_BossInit || cam_mode == CameraMode_Motion)
     {
         return true;
     }
