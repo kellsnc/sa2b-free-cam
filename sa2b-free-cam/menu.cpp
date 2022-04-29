@@ -4,6 +4,14 @@
 #include "utilities.h"
 #include "camera.h"
 
+enum PauseModes
+{
+    PauseMode_Closed,
+    PauseMode_Main,
+    PauseMode_Help,
+    PauseMode_Camera // added
+};
+
 Trampoline* GameStateHandler_t = nullptr;
 Trampoline* InitPauseMenu_t = nullptr;
 Trampoline* FreePauseMenu_t = nullptr;
@@ -62,7 +70,7 @@ static void __cdecl PauseMenuDisplay_r()
     }
     else
     {
-        if (PauseMode == 1)
+        if (PauseMode == PauseMode_Main)
         {
             DrawPauseBackground(PauseOptionCount);
             for (int i = 0; i < PauseOptionCount; ++i)
@@ -79,7 +87,7 @@ static void __cdecl PauseMenuDisplay_r()
                 DrawPauseText(v3, i, i);
             }
         }
-        else if (PauseMode == 2)              // Help menu
+        else if (PauseMode == PauseMode_Help)              // Help menu
         {
             DrawPauseBackground(PauseOptionCount);
             for (int j = 0; j < PauseOptionCount; ++j)
@@ -87,7 +95,7 @@ static void __cdecl PauseMenuDisplay_r()
                 DrawPauseText(PauseMenuHelpFontTexs[j], j, j);
             }
         }
-        else if (PauseMode == 3)
+        else if (PauseMode == PauseMode_Camera)
         {
             DrawSpriteThing(*(void**)0x1A55928, 168.0f, 180.0f, 320.0f, 164.0f, 0.99f, 0.0f, 0.0f, 1.0f, 1.0f, -1);
             for (int i = 0; i < PauseOptionCount; ++i)
@@ -104,7 +112,7 @@ static void __cdecl PauseMenuDisplay_r()
 static void ReturnToMainPauseMenu()
 {
     PlaySoundProbably(32770, 0, 0, 0);
-    PauseMode = 1;
+    PauseMode = PauseMode_Main;
     PauseOptionCount = (!TwoPlayerMode && Life_Count[0] > 0) ? 6 : 5;
     PauseSelection = PauseOptionCount == 6 ? 2 : 1;
     ControllersRaw[0].press = 0; // prevent original function from running wrong code
@@ -114,7 +122,7 @@ static void GoToCameraMenu()
 {
     PlaySoundProbably(32770, 0, 0, 0);
     PauseOptionCount = 2;
-    PauseMode = 3;
+    PauseMode = PauseMode_Camera;
     ControllersRaw[0].press = 0; // prevent original function from running wrong code
     PauseSelection = GetFreeCamera(0);
 }
@@ -125,7 +133,7 @@ static BOOL __cdecl GameStateHandler_r()
     if (GameState == GameStates_Pause)
     {
         // Main menu logic override:
-        if (PauseMode == 1 && ControllersRaw[0].press & Buttons_A)
+        if (PauseMode == PauseMode_Main && ControllersRaw[0].press & Buttons_A)
         {
             if ((PauseSelection == 2 && PauseOptionCount == 6) || (PauseSelection == 1 && PauseOptionCount == 5))
             {
@@ -134,7 +142,7 @@ static BOOL __cdecl GameStateHandler_r()
         }
 
         // Camera menu logic:
-        if (PauseMode == 3)
+        if (PauseMode == PauseMode_Camera)
         {
             if (ControllersRaw[0].press & Buttons_B)
             {
