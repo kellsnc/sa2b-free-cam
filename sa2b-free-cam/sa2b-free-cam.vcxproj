@@ -113,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="utilities.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\resources\configschema.xml" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

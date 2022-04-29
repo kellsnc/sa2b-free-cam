@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ConfigSchema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonicretro.org">
+  <Groups>
+    <Group name="" display="General">
+      <Property name="Menu" type="bool" defaultvalue="True" display="Pause menu integration">
+        <HelpText>This will add a camera submenu to the pause menu. Note that it replaces the leaderboard entry.</HelpText>
+      </Property>
+      <Property name="MinDist" type="float" defaultvalue="16.0" minvalue="0.0" display="Minimum distance">
+        <HelpText>The closest distance that the camera can be from the player.</HelpText>
+      </Property>
+      <Property name="MaxDist" type="float" defaultvalue="50.0" minvalue="0.0" display="Maximum distance">
+        <HelpText>The farthest distance that the camera can be from the player.</HelpText>
+      </Property>
+      <Property name="Height" type="float" defaultvalue="10.5" display="Height" />
+      <Property name="AnalogThreshold" type="int" defaultvalue="64" minvalue="0" maxvalue="2000" display="Right-analog threshold">
+        <HelpText>The sensitivity when using the right analog or LR triggers.</HelpText>
+      </Property>
+      <Property name="AnalogMaxSpeed" type="int" defaultvalue="256" minvalue="0" maxvalue="2000" display="Right-analog maximum speed">
+        <HelpText>The maximum speed at which the camera can rotate when using the right analog or LR triggers.</HelpText>
+      </Property>
+    </Group>
+  </Groups>
+</ConfigSchema>
