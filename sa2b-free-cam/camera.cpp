@@ -417,7 +417,8 @@ void __cdecl Camera_r(ObjectMaster* tp)
 
             if (!(fcp->mode & MODE_ACTIVE))
             {
-                fcwrk[CurrentScreen].mode |= MODE_UPDATE;
+                fcp->mode |= MODE_UPDATE;
+
                 CameraCameraMode();
                 RunCameraTarget();
 
@@ -436,6 +437,10 @@ void __cdecl Camera_r(ObjectMaster* tp)
                         }
                     }
                 }
+
+                // Compensate for lack of adjust transition
+                fcp->_ang = CameraAng;
+                fcp->pos = CameraPos;
             }
             else
             {
