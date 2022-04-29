@@ -5,6 +5,8 @@
 #include "utilities.h"
 #include "camera.h"
 
+#define HEIGHT (plpwp->PhysData.Height - 10.0f + config::height);
+
 enum : unsigned int
 {
     MODE_ENABLED = 0x1,        // If free camera is enabled
@@ -41,7 +43,7 @@ static void FreeCam_GetDistances(FCWRK* cam, EntityData1* pltwp)
     cam->dist2 = config::max_dist;
 }
 
-static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
+static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp, CharObj2Base* plpwp)
 {
     NJS_VECTOR unitvector = { 0.0f, 0.0f, cam->dist };
     njPushUnitMatrix();
@@ -51,7 +53,7 @@ static void FreeCam_CalcOrigin(FCWRK* cam, EntityData1* pltwp)
     njPopMatrixEx();
 
     cam->pos.x = unitvector.x + pltwp->Position.x;
-    cam->pos.y = unitvector.y + pltwp->Position.y + config::height;
+    cam->pos.y = unitvector.y + pltwp->Position.y + HEIGHT;
     cam->pos.z = unitvector.z + pltwp->Position.z;
 }
 
@@ -109,12 +111,12 @@ static bool freecameramode(int screen)
     {
         return false;
     }
-
+    
     if ((cam->mode & MODE_UPDATE))
     {
         FreeCam_GetDistances(cam, pltwp);
         vec.x = cam->pos.x - pltwp->Position.x;
-        vec.y = cam->pos.y - pltwp->Position.y - config::height;
+        vec.y = cam->pos.y - pltwp->Position.y - HEIGHT;
         vec.z = cam->pos.z - pltwp->Position.z;
         float magnitude = fabsf(njScalor(&vec));
         njUnitVector(&vec);
@@ -133,7 +135,7 @@ static bool freecameramode(int screen)
             cam->dist = magnitude;
         }
 
-        FreeCam_CalcOrigin(cam, pltwp);
+        FreeCam_CalcOrigin(cam, pltwp, plpwp);
         cam->campos = cam->pos;
         cam->counter = 0;
         cam->pang.x = 0;
@@ -150,7 +152,7 @@ static bool freecameramode(int screen)
             cam->counter = 0;
             cam->dist0 = cam->dist1;
             cam->dist = cam->dist1;
-            FreeCam_CalcOrigin(cam, pltwp);
+            FreeCam_CalcOrigin(cam, pltwp, plpwp);
             cam->campos = cam->pos;
         }
 
@@ -165,7 +167,7 @@ static bool freecameramode(int screen)
                 break;
             }
 
-            FreeCam_CalcOrigin(cam, pltwp);
+            FreeCam_CalcOrigin(cam, pltwp, plpwp);
             cam->cammovepos = cam->campos;
             cam->camspd = { 0.0f, 0.0f, 0.0f };
 
@@ -264,7 +266,7 @@ static bool freecameramode(int screen)
 
     cam->dist = cam->dist0;
 
-    FreeCam_CalcOrigin(cam, pltwp);
+    FreeCam_CalcOrigin(cam, pltwp, plpwp);
     cam->cammovepos = cam->pos;
     cam->camspd.x = cam->pos.x - cam->campos.x;
     cam->camspd.y = cam->pos.y - cam->campos.y;
@@ -322,14 +324,14 @@ static bool freecameramode(int screen)
     }
 
     vec.x = cam->campos.x - pltwp->Position.x - vec.x;
-    vec.y = cam->campos.y - pltwp->Position.y - vec.y - config::height;
+    vec.y = cam->campos.y - pltwp->Position.y - vec.y - HEIGHT;
     vec.z = cam->campos.z - pltwp->Position.z - vec.z;
     njUnitVector(&vec);
 
     cam->_ang.y = NJM_RAD_ANG(atan2f(vec.x, vec.z));
     cam->_ang.x = NJM_RAD_ANG(-asinf(vec.y));
     vec.x = cam->campos.x - pltwp->Position.x;
-    vec.y = cam->campos.y - pltwp->Position.y - config::height;
+    vec.y = cam->campos.y - pltwp->Position.y - HEIGHT;
     vec.z = cam->campos.z - pltwp->Position.z;
     cam->dist = fabsf(njScalor(&vec));
 
