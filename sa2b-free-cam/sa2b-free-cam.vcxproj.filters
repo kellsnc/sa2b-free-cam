@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Fichiers d%27en-tête\include">
+      <UniqueIdentifier>{5166f69f-bc05-4f4d-81e8-71ccc6498b49}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -35,6 +38,9 @@
     </ClInclude>
     <ClInclude Include="patches.h">
       <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\freecam_api.h">
+      <Filter>Fichiers d%27en-tête\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +66,9 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="patches.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="freecam_api.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
