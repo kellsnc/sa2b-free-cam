@@ -5,7 +5,7 @@
 #include "utilities.h"
 #include "camera.h"
 
-#define HEIGHT (plpwp->PhysData.Height - 10.0f + config::height);
+#define HEIGHT (plpwp->PhysData.Height - 10.0f + config::height)
 
 enum : unsigned int
 {

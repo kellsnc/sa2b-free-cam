@@ -24,7 +24,7 @@ void __cdecl Rd_CityEscape_r()
     {
         auto ptwp = MainCharObj1[i];
 
-        if (ptwp)
+        if (ptwp && ptwp->Position.y < -15850.0f)
         {
             if (ptwp->Position.z > 15910.0f && ptwp->Position.x < 4110.0f)
             {
