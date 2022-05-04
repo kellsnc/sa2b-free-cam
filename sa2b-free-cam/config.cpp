@@ -25,7 +25,7 @@ namespace config
 			height       = general->getFloat("Height", height);
 			analog_spd   = max(0, min(2000, general->getInt("AnalogThreshold", analog_spd)));
 			analog_max   = max(analog_spd, min(2000, general->getInt("AnalogMaxSpeed", analog_max)));
-			invert_axes  = general->getBool("InverseAxes", invert_axes);
+			invert_axes  = general->getBool("InvertAxes", invert_axes);
 		}
 
 		delete config;
