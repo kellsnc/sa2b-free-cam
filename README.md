@@ -22,6 +22,7 @@ AnalogMaxSpeed=256 ; the maximum speed at which the camera can rotate when using
 MinDist=16 ; the closest distance that the camera can be from the player
 MaxDist=50 ; the farthest distance that the camera can be from the player
 Height=10,5 ; the height of the camera (from Sonic's perspective, automatically adjusted for other characters)
+InvertAxes=False ; inverts the right-analog axes
 ```
 
 ## Credits
