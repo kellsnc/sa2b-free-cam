@@ -386,9 +386,10 @@ static void AdjustForFreeCamera(CameraInfo* cam, FCWRK* fcp)
 
     CameraTgt = { ptwp->Position.x, ptwp->Position.y + ppwp->PhysData.CenterHeight, ptwp->Position.z };
     CameraSpeed = spd;
-
-    CameraTargetMode = 0;
-    RunCameraTarget();
+    CameraDir.x = CameraTgt.x - CameraPos.x;
+    CameraDir.y = CameraTgt.y - CameraPos.y;
+    CameraDir.z = CameraTgt.z - CameraPos.z;
+    DirectionToCameraAngle(&CameraDir, &CameraAng.x, &CameraAng.y);
 }
 
 void __cdecl Camera_r(ObjectMaster* tp)
