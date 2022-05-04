@@ -81,13 +81,80 @@ static bool FreeCam_Exception(int screen)
     return false;
 }
 
+static void FreeCam_AnalogCtrl(FCWRK* cam, int player)
+{
+    auto plper = &Controllers[player];
+
+    auto axis_x = config::invert_axes ? -plper->x2 : plper->x2;
+    auto axis_y = config::invert_axes ? -plper->y2 : plper->y2;
+    
+    if (cam->pang.y > 0)
+    {
+        cam->pang.y -= 32;
+
+        if (cam->pang.y < 0)
+        {
+            cam->pang.y = 0;
+        }
+    }
+    else if (cam->pang.y < 0)
+    {
+        cam->pang.y += 32;
+
+        if (cam->pang.y > 0)
+        {
+            cam->pang.y = 0;
+        }
+    }
+
+    if ((axis_x > 0 || (plper->r - 128) << 8 > 128) && cam->pang.y < config::analog_max)
+    {
+        cam->pang.y += config::analog_spd;
+    }
+    else if ((axis_x < 0 || (plper->l - 128) << 8 > 128) && cam->pang.y > -config::analog_max)
+    {
+        cam->pang.y -= config::analog_spd;
+    }
+
+    cam->_ang.y += cam->pang.y;
+
+    if (cam->pang.x > 0)
+    {
+        cam->pang.x -= 32;
+
+        if (cam->pang.x < 0)
+        {
+            cam->pang.x = 0;
+        }
+    }
+    else if (cam->pang.x < 0)
+    {
+        cam->pang.x += 32;
+
+        if (cam->pang.x > 0)
+        {
+            cam->pang.x = 0;
+        }
+    }
+
+    if (axis_y > 0 && cam->pang.x < config::analog_max)
+    {
+        cam->pang.x += config::analog_spd;
+    }
+    else if (axis_y < 0 && cam->pang.x > -config::analog_max)
+    {
+        cam->pang.x -= config::analog_spd;
+    }
+
+    cam->_ang.x += cam->pang.x;
+}
+
 static bool freecameramode(int screen)
 {
     auto cam = &fcwrk[screen];
     auto pltwp = MainCharObj1[screen];
     auto plmwp = MainCharData2[screen];
     auto plpwp = MainCharObj2[screen];
-    auto plper = &Controllers[screen];
 
     if (!pltwp)
     {
@@ -192,65 +259,7 @@ static bool freecameramode(int screen)
         cam->mode &= ~(MODE_UPDATE | MODE_UPDATE2);
     }
 
-    if (cam->pang.y > 0)
-    {
-        cam->pang.y -= 32;
-
-        if (cam->pang.y < 0)
-        {
-            cam->pang.y = 0;
-        }
-    }
-    else if (cam->pang.y < 0)
-    {
-        cam->pang.y += 32;
-
-        if (cam->pang.y > 0)
-        {
-            cam->pang.y = 0;
-        }
-    }
-
-    if ((plper->x2 > 0 || (plper->r - 128) << 8 > 128) && cam->pang.y < config::analog_max)
-    {
-        cam->pang.y += config::analog_spd;
-    }
-    else if ((plper->x2 < 0 || (plper->l - 128) << 8 > 128) && cam->pang.y > -config::analog_max)
-    {
-        cam->pang.y -= config::analog_spd;
-    }
-
-    cam->_ang.y += cam->pang.y;
-
-    if (cam->pang.x > 0)
-    {
-        cam->pang.x -= 32;
-
-        if (cam->pang.x < 0)
-        {
-            cam->pang.x = 0;
-        }
-    }
-    else if (cam->pang.x < 0)
-    {
-        cam->pang.x += 32;
-
-        if (cam->pang.x > 0)
-        {
-            cam->pang.x = 0;
-        }
-    }
-
-    if (plper->y2 > 0 && cam->pang.x < config::analog_max)
-    {
-        cam->pang.x += config::analog_spd;
-    }
-    else if (plper->y2 < 0 && cam->pang.x > -config::analog_max)
-    {
-        cam->pang.x -= config::analog_spd;
-    }
-
-    cam->_ang.x += cam->pang.x;
+    FreeCam_AnalogCtrl(cam, screen);
 
     if (cam->_ang.x >= -12288)
     {

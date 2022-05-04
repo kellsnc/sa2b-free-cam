@@ -8,6 +8,7 @@ namespace config
 	extern float height;
 	extern int analog_spd;
 	extern int analog_max;
+	extern bool invert_axes;
 
 	void read(const char* path);
 }
