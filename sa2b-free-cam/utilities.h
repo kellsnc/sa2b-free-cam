@@ -117,6 +117,22 @@ static inline void DrawSpriteThing(void* image, float a2, float a3, float a4, fl
     }
 }
 
+static const void* const loc_4F07C0 = (void*)0x4F07C0;
+static inline int DirectionToCameraAngle(NJS_POINT3* dir, Angle* angx, Angle* angy)
+{
+    int result;
+    __asm
+    {
+        push[angy]
+        push[angx]
+        mov esi, [dir]
+        call loc_4F07C0
+        mov result, eax
+        add esp, 8
+    }
+    return result;
+}
+
 BOOL MSetPositionWIgnoreAttribute(NJS_POINT3* p, NJS_POINT3* v, Angle3* a, int attrmask, float r);
 void CameraCameraAdjust();
 void CamcontSetCameraLOOKAT();

@@ -335,7 +335,7 @@ static bool freecameramode(int screen)
     vec.z = cam->campos.z - pltwp->Position.z;
     cam->dist = fabsf(njScalor(&vec));
 
-    if (cam->dist <= cam->dist2)
+    if (cam->dist <= cam->dist2 + 1.0f)
     {
         cam->counter = 0;
     }
@@ -371,10 +371,12 @@ static void AdjustForFreeCamera(CameraInfo* cam, FCWRK* fcp)
     auto ptwp = MainCharObj1[CurrentScreen];
     auto ppwp = MainCharObj2[CurrentScreen];
 
+    auto oldpos = &pCameraLocations[CurrentScreen]->pos;
+    
     NJS_POINT3 v1 = { CameraPos.x + ptwp->Position.x, CameraPos.y + ptwp->Position.y, CameraPos.z + ptwp->Position.z };
     float d1 = sqrtf(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
 
-    NJS_POINT3 v2 = { cam->location.pos.x + ptwp->Position.x, cam->location.pos.y + ptwp->Position.y, cam->location.pos.z + ptwp->Position.z };
+    NJS_POINT3 v2 = { oldpos->x + ptwp->Position.x, oldpos->y + ptwp->Position.y, oldpos->z + ptwp->Position.z };
     float d2 = sqrtf(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
 
     float spd = d2 + (d1 - d2) * 0.3f;
@@ -384,7 +386,9 @@ static void AdjustForFreeCamera(CameraInfo* cam, FCWRK* fcp)
 
     CameraTgt = { ptwp->Position.x, ptwp->Position.y + ppwp->PhysData.CenterHeight, ptwp->Position.z };
     CameraSpeed = spd;
-    CamcontSetCameraLOOKAT();
+
+    CameraTargetMode = 0;
+    RunCameraTarget();
 }
 
 void __cdecl Camera_r(ObjectMaster* tp)
@@ -446,7 +450,6 @@ void __cdecl Camera_r(ObjectMaster* tp)
             }
             else
             {
-                RunCameraTarget();
                 AdjustForFreeCamera(cam, fcp);
             }
 
