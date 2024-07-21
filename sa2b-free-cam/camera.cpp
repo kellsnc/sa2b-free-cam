@@ -89,7 +89,7 @@ static void FreeCam_AnalogCtrl(FCWRK* cam, int player)
     int axis_y = config::invert_axes ? -plper->y2 : plper->y2;
 	int l = config::invert_axes && axis_x ? 0 : plper->l;
 	int r = config::invert_axes && axis_x ? 0 : plper->r;
-    
+
     if (cam->pang.y > 0)
     {
         cam->pang.y -= 32;
@@ -187,21 +187,23 @@ static bool freecameramode(int screen)
         vec.x = cam->pos.x - pltwp->Position.x;
         vec.y = cam->pos.y - pltwp->Position.y - HEIGHT;
         vec.z = cam->pos.z - pltwp->Position.z;
-        float magnitude = fabsf(njScalor(&vec));
-        njUnitVector(&vec);
-        cam->_ang.y = NJM_RAD_ANG(atan2(vec.x, vec.z));
-        cam->_ang.x = NJM_RAD_ANG(-asin(vec.y));
-        cam->_ang.z = 0;
 
-        if (magnitude < cam->dist1 || magnitude > cam->dist2)
+		Float dist = (Float)abs((Sint32)njScalor(&vec));
+		njUnitVector(&vec);
+
+		cam->_ang.y = njArcTan2(vec.x, vec.z);
+		cam->_ang.x = -njArcSin(vec.y);
+		cam->_ang.z = 0;
+
+        if (dist < cam->dist1 || dist > cam->dist2)
         {
             cam->dist0 = cam->dist1;
             cam->dist = cam->dist1;
         }
         else
         {
-            cam->dist0 = magnitude;
-            cam->dist = magnitude;
+            cam->dist0 = dist;
+            cam->dist = dist;
         }
 
         FreeCam_CalcOrigin(cam, pltwp, plpwp);
@@ -225,7 +227,7 @@ static bool freecameramode(int screen)
             cam->campos = cam->pos;
         }
 
-        int passes = 60;
+        Sint32 passes = 60;
         while (1)
         {
             cam->dist0 = cam->dist;
@@ -283,31 +285,31 @@ static bool freecameramode(int screen)
     cam->camspd.y = cam->pos.y - cam->campos.y;
     cam->camspd.z = cam->pos.z - cam->campos.z;
 
-    freecampos = cam->campos;
-    dyncolpos = cam->camspd;
-    int colli_cdt = 0;
+	NJS_VECTOR p = cam->campos;
+	NJS_VECTOR v = cam->camspd;
 
-    if (MSetPositionWIgnoreAttribute(&freecampos, &dyncolpos, nullptr, SurfaceFlag_Water | SurfaceFlag_WaterNoAlpha, 10.0f))
-    {
-        freecampos = cam->campos;
-        dyncolpos = cam->camspd;
-        colli_cdt = 1;
+	Sint32 colli_flag = 0;
+	if (MSetPositionWIgnoreAttribute(&p, &v, 0, SurfaceFlag_Water | SurfaceFlag_WaterNoAlpha, 10.0f))
+	{
+		p = cam->campos;
+		v = cam->camspd;
+		colli_flag = 1;
+		if (MSetPositionWIgnoreAttribute(&p, &v, 0, SurfaceFlag_Water | SurfaceFlag_WaterNoAlpha, 8.0f))
+		{
+			colli_flag = 2;
+		}
+	}
 
-        if (MSetPositionWIgnoreAttribute(&freecampos, &dyncolpos, nullptr, SurfaceFlag_Water | SurfaceFlag_WaterNoAlpha, 8.0f))
-        {
-            colli_cdt = 2;
-        }
-    }
+	cam->pos.x = v.x + p.x;
+	cam->pos.y = v.y + p.y;
+	cam->pos.z = v.z + p.z;
+	cam->campos = cam->pos;
 
-    cam->pos.x = dyncolpos.x + freecampos.x;
-    cam->pos.y = dyncolpos.y + freecampos.y;
-    cam->pos.z = dyncolpos.z + freecampos.z;
-    cam->campos = cam->pos;
     vec.x = plmwp->Velocity.x;
     vec.y = plmwp->Velocity.y;
     vec.z = plmwp->Velocity.z;
 
-    if (fabsf(vec.x) >= 1.0f)
+    if ((Float)abs((Sint32)vec.x) >= 1.0f)
     {
         vec.x *= 1.1f;
     }
@@ -316,7 +318,7 @@ static bool freecameramode(int screen)
         vec.x = 0.0f;
     }
 
-    if (fabsf(vec.y) >= 1.0f)
+    if ((Float)abs((Sint32)vec.y) >= 1.0f)
     {
         vec.y *= 1.1f;
     }
@@ -325,7 +327,7 @@ static bool freecameramode(int screen)
         vec.y = 0.0f;
     }
 
-    if (fabsf(vec.z) >= 1.0f)
+    if ((Float)abs((Sint32)vec.z) >= 1.0f)
     {
         vec.z *= 1.1f;
     }
@@ -339,14 +341,15 @@ static bool freecameramode(int screen)
     vec.z = cam->campos.z - pltwp->Position.z - vec.z;
     njUnitVector(&vec);
 
-    cam->_ang.y = NJM_RAD_ANG(atan2f(vec.x, vec.z));
-    cam->_ang.x = NJM_RAD_ANG(-asinf(vec.y));
+	cam->_ang.y = njArcTan2(vec.x, vec.z);
+	cam->_ang.x = -njArcSin(vec.y);
+
     vec.x = cam->campos.x - pltwp->Position.x;
     vec.y = cam->campos.y - pltwp->Position.y - HEIGHT;
     vec.z = cam->campos.z - pltwp->Position.z;
-    cam->dist = fabsf(njScalor(&vec));
+    cam->dist = (Float)abs((Sint32)njScalor(&vec));
 
-    if (cam->dist <= cam->dist2 + 1.0f)
+    if (cam->dist <= cam->dist2)
     {
         cam->counter = 0;
     }
@@ -355,7 +358,7 @@ static bool freecameramode(int screen)
         cam->mode |= MODE_UPDATE2;
     }
 
-    if (colli_cdt)
+    if (colli_flag)
     {
         if (cam->dist <= cam->dist1)
         {
@@ -381,12 +384,13 @@ static void AdjustForFreeCamera(CameraInfo* cam, FCWRK* fcp)
 {
     auto ptwp = MainCharObj1[CurrentScreen];
     auto ppwp = MainCharObj2[CurrentScreen];
-
+	
     auto oldpos = &pCameraLocations[CurrentScreen]->pos;
     
     NJS_POINT3 v1 = { CameraPos.x + ptwp->Position.x, CameraPos.y + ptwp->Position.y, CameraPos.z + ptwp->Position.z };
     float d1 = sqrtf(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
 
+	// Note: in SADX, it uses the player position from 2 frames ago
     NJS_POINT3 v2 = { oldpos->x + ptwp->Position.x, oldpos->y + ptwp->Position.y, oldpos->z + ptwp->Position.z };
     float d2 = sqrtf(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
 
