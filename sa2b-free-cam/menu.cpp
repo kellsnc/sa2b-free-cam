@@ -60,7 +60,7 @@ static void __cdecl PauseMenuDisplay_r()
         ScreenDrawMode = 0;
         njDisableFog();
 
-		RenferInfo_->unknown1 = RenferInfo_->unknown1 & ~0xFC000000 | 0x94000000;
+		pRenderInfo->attrflags = pRenderInfo->attrflags & ~0xFC000000 | 0x94000000;
         
         DrawSpriteThing(*(void**)0x1A55928, 168.0f, 180.0f, 320.0f, 164.0f, 0.99f, 0.0f, 0.0f, 1.0f, 1.0f, -1);
         for (int i = 0; i < PauseOptionCount; ++i)
