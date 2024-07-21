@@ -85,8 +85,10 @@ static void FreeCam_AnalogCtrl(FCWRK* cam, int player)
 {
     auto plper = &Controllers[player];
 
-    auto axis_x = config::invert_axes ? -plper->x2 : plper->x2;
-    auto axis_y = config::invert_axes ? -plper->y2 : plper->y2;
+    int axis_x = config::invert_axes ? -plper->x2 : plper->x2;
+    int axis_y = config::invert_axes ? -plper->y2 : plper->y2;
+	int l = config::invert_axes && axis_x ? 0 : plper->l;
+	int r = config::invert_axes && axis_x ? 0 : plper->r;
     
     if (cam->pang.y > 0)
     {
@@ -107,11 +109,11 @@ static void FreeCam_AnalogCtrl(FCWRK* cam, int player)
         }
     }
 
-    if ((axis_x > 0 || (plper->r - 128) << 8 > 128) && cam->pang.y < config::analog_max)
+    if ((axis_x > 0 || (r - 128) << 8 > 128) && cam->pang.y < config::analog_max)
     {
         cam->pang.y += config::analog_spd;
     }
-    else if ((axis_x < 0 || (plper->l - 128) << 8 > 128) && cam->pang.y > -config::analog_max)
+    else if ((axis_x < 0 || (l - 128) << 8 > 128) && cam->pang.y > -config::analog_max)
     {
         cam->pang.y -= config::analog_spd;
     }
